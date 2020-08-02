@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option go_package = ".;api";
+
+service BatchSaver {
+	rpc SaveEvent (stream SaveEventRequest) returns (SaveEventResponse);
+}
+
+message SaveEventRequest {
+	string id = 1;
+	string group_id = 2;
+	bytes data = 3;
+}
+
+message SaveEventResponse {
+}
