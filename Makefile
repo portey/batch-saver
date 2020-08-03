@@ -1,9 +1,12 @@
 export GO111MODULE=on
 export GOSUMDB=off
 
+IMAGE_TAG := $(shell git rev-parse HEAD)
+DOCKER_REPO :=
+
 .PHONE: build
 build: dep
-	go build -mod=vendor -o ./bin/${BIN_NAME} -a .
+	go build -mod=vendor -o ./bin/svc -a .
 
 .PHONE: proto
 proto:
@@ -22,3 +25,7 @@ test: dep
 .PHONY: lint
 lint: dep
 	golangci-lint run -c .golangci.yml
+
+.PHONY: dockerise
+dockerise:
+	docker build -t "${DOCKER_REPO}/user-service:${IMAGE_TAG}" .

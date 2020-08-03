@@ -8,10 +8,12 @@ import (
 	"sync"
 	"syscall"
 
+	_ "github.com/lib/pq"
 	"github.com/portey/batch-saver/config"
 	"github.com/portey/batch-saver/grpc"
 	"github.com/portey/batch-saver/healthcheck"
 	"github.com/portey/batch-saver/service"
+	"github.com/portey/batch-saver/storage/postgres"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -28,8 +30,13 @@ func main() {
 	setupGracefulShutdown(cancel)
 	var wg = &sync.WaitGroup{}
 
+	storage, err := postgres.New(cfg.PostgresCfg)
+	if err != nil {
+		log.WithError(err).Fatal("initializing db connection")
+	}
+
 	// initializing business logic
-	srv := service.New(ctx, cfg.ServiceCfg, nil) // todo real sinker here
+	srv := service.New(ctx, cfg.ServiceCfg, storage)
 
 	// initializing grpc server
 	grpcSrv, err := grpc.New(cfg.GRPCServerPort, srv)

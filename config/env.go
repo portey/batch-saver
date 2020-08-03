@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/portey/batch-saver/service"
+	"github.com/portey/batch-saver/storage/postgres"
 	"github.com/spf13/viper"
 )
 
@@ -26,6 +27,14 @@ func Read() Config {
 			NumberOfWorkers:   viper.GetInt("NUMBER_OF_WORKERS"),
 			BatchMaxSize:      viper.GetInt("BATCH_MAX_SIZE"),
 			BatchFlushTimeout: viper.GetDuration("BATCH_FLUSH_TIMEOUT"),
+		},
+		PostgresCfg: postgres.Config{
+			Host:     viper.GetString("DB_HOST"),
+			Port:     viper.GetInt("DB_PORT"),
+			Db:       viper.GetString("DB_NAME"),
+			User:     viper.GetString("DB_USERNAME"),
+			Password: viper.GetString("DB_PWD"),
+			Ssl:      viper.GetBool("DB_SSL"),
 		},
 	}
 }

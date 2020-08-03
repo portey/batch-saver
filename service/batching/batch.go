@@ -10,7 +10,7 @@ import (
 )
 
 type Sinker interface {
-	Sink([]models.Event) error
+	Sink(context.Context, []models.Event) error
 }
 
 type BatchStore struct {
@@ -81,7 +81,7 @@ func newBatch(ctx context.Context, sinker Sinker, maxSize int, flushTimeout time
 			return
 		}
 
-		if err := sinker.Sink(items); err != nil {
+		if err := sinker.Sink(ctx, items); err != nil {
 			log.WithError(err).Error("batching: could't sink Batch")
 			// todo implement backoff strategy here
 		}
