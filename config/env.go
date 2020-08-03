@@ -32,12 +32,12 @@ func Read() Config {
 			BatchFlushTimeout: viper.GetDuration("BATCH_FLUSH_TIMEOUT"),
 		},
 		PostgresCfg: postgres.Config{
-			Host:     viper.GetString("DB_HOST"),
-			Port:     viper.GetInt("DB_PORT"),
-			Db:       viper.GetString("DB_NAME"),
-			User:     viper.GetString("DB_USERNAME"),
-			Password: viper.GetString("DB_PWD"),
-			Ssl:      viper.GetBool("DB_SSL"),
+			Host:     viper.GetString("POSTGRES_HOST"),
+			Port:     viper.GetInt("POSTGRES_PORT"),
+			Db:       viper.GetString("POSTGRES_DB_NAME"),
+			User:     viper.GetString("POSTGRES_USERNAME"),
+			Password: viper.GetString("POSTGRES_PWD"),
+			Ssl:      viper.GetBool("POSTGRES_SSL"),
 		},
 	}
 }

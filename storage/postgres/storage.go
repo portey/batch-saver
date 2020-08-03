@@ -50,11 +50,14 @@ func (r *Storage) Sink(ctx context.Context, events []models.Event) error {
 	tx := r.db.MustBeginTx(ctx, nil)
 
 	for _, event := range events {
-		if _, err := tx.NamedExecContext(ctx, "INSERT INTO events(id, group_id, data) VALUES (:id, :group_id, :data)", map[string]interface{}{
-			"id":       event.ID,
-			"group_id": event.GroupID,
-			"data":     event.Data,
-		}); err != nil {
+		if _, err := tx.NamedExecContext(
+			ctx,
+			"INSERT INTO events(id, group_id, data) VALUES (:id, :group_id, :data) ON CONFLICT DO NOTHING",
+			map[string]interface{}{
+				"id":       event.ID,
+				"group_id": event.GroupID,
+				"data":     event.Data,
+			}); err != nil {
 			return tx.Rollback()
 		}
 	}

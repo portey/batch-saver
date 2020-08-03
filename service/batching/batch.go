@@ -55,7 +55,9 @@ func (s *BatchStore) GetByGroup(id string) *Batch {
 		return b.(*Batch)
 	}
 
-	newB := newBatch(s.ctx, s.sinker, s.maxSize, s.flushTimeout)
+	newB := newBatch(s.ctx, s.sinker, s.maxSize, s.flushTimeout, func() {
+		s.batches.Delete(id)
+	})
 	s.batches.Store(id, newB)
 
 	return newB
@@ -67,22 +69,21 @@ type Batch struct {
 	ch       chan<- models.Event
 }
 
-func newBatch(ctx context.Context, sinker Sinker, maxSize int, flushTimeout time.Duration) *Batch { // nolint:gocyclo
+func newBatch(ctx context.Context, sinker Sinker, maxSize int, flushTimeout time.Duration, cleanup func()) *Batch { // nolint:gocyclo
 	ch := make(chan models.Event)
 	checkDie := make(chan struct{})
 	items := make([]models.Event, 0, maxSize)
 
-	timer := time.NewTimer(0)
 	var timerCh <-chan time.Time
 
 	flush := func() {
-		log.Tracef("batching: flushing Batch of size %d", len(items))
+		log.Tracef("batching: flushing batch with size %d", len(items))
 		if len(items) == 0 {
 			return
 		}
 
 		if err := sinker.Sink(ctx, items); err != nil {
-			log.WithError(err).Error("batching: could't sink Batch")
+			log.WithError(err).Error("batching: could't sink batch")
 			// todo implement backoff strategy here
 		}
 
@@ -90,6 +91,8 @@ func newBatch(ctx context.Context, sinker Sinker, maxSize int, flushTimeout time
 	}
 
 	go func() {
+		defer cleanup()
+
 		for {
 			select {
 			case <-ctx.Done():
@@ -110,22 +113,18 @@ func newBatch(ctx context.Context, sinker Sinker, maxSize int, flushTimeout time
 					return
 				}
 
+				log.Tracef("batching: accepted message %s", e.ID)
+
 				items = append(items, e)
 				if len(items) == maxSize {
-					if !timer.Stop() {
-						<-timer.C
-					}
+					log.Trace("batching: flushing batch by size")
 					flush()
 					continue
 				}
 
-				if !timer.Stop() {
-					<-timer.C
-				}
-				timer.Reset(flushTimeout)
-				timerCh = timer.C
+				timerCh = time.After(flushTimeout)
 			case <-timerCh:
-				timer.Stop()
+				log.Trace("batching: flushing batch by timeout")
 				flush()
 			}
 		}

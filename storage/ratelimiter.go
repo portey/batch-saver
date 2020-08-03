@@ -16,9 +16,14 @@ type RateLimiter struct {
 }
 
 func NewRateLimiter(size int, sinker sinker) *RateLimiter {
+	ch := make(chan struct{}, size)
+	for i := 0; i < size; i++ {
+		ch <- struct{}{}
+	}
+
 	return &RateLimiter{
 		sinker: sinker,
-		ch:     make(chan struct{}, size),
+		ch:     ch,
 	}
 }
 
