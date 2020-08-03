@@ -3,6 +3,7 @@ module github.com/portey/batch-saver
 go 1.14
 
 require (
+	github.com/go-redis/redis/v8 v8.0.0-beta.7
 	github.com/golang/protobuf v1.4.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/jmoiron/sqlx v1.2.0
