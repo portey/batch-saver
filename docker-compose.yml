@@ -1,0 +1,28 @@
+version: '3.4'
+services:
+  service:
+    image: batch-saver:${IMAGE_TAG}
+    environment:
+      APP_LOG_LEVEL: "DEBUG"
+      APP_POSTGRES_HOST: "postgresql"
+      APP_POSTGRES_PORT: "5432"
+      APP_POSTGRES_DB_NAME: "events"
+      APP_POSTGRES_USERNAME: "postgres"
+      APP_POSTGRES_PWD: "postgres"
+    depends_on:
+      - postgresql
+    links:
+      - postgresql
+    ports:
+      - 8080:8080
+      - 8888:8888
+    restart: always
+
+  postgresql:
+    image: postgres:11-alpine
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "events"
+    ports:
+      - 5432:5432

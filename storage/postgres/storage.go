@@ -5,7 +5,11 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/mattes/migrate"
 	"github.com/portey/batch-saver/models"
+
+	_ "github.com/mattes/migrate/database/postgres"
+	_ "github.com/mattes/migrate/source/file"
 )
 
 type (
@@ -26,6 +30,16 @@ type (
 func New(cfg Config) (*Storage, error) {
 	db, err := sqlx.Connect("postgres", cfg.address())
 	if err != nil {
+		return nil, err
+	}
+
+	m, err := migrate.New("file://storage/postgres/migrations", cfg.address())
+	if err != nil {
+		return nil, err
+	}
+	defer m.Close()
+
+	if err = m.Up(); err != nil {
 		return nil, err
 	}
 
