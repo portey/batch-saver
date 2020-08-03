@@ -10,6 +10,8 @@ type Config struct {
 	HealthCheckPort int
 	GRPCServerPort  int
 
+	MaxConcurrentWrites int
+
 	ServiceCfg  service.Config
 	PostgresCfg postgres.Config
 }

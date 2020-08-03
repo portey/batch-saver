@@ -11,18 +11,21 @@ func Read() Config {
 
 	viper.SetEnvPrefix("APP")
 
-	viper.SetDefault("LOG_LEVEL", "DEBUG")
+	viper.SetDefault("LOG_LEVEL", "TRACE")
 	viper.SetDefault("GRPC_PORT", 8080)
 	viper.SetDefault("HEALTH_CHECK_PORT", 8888)
+
+	viper.SetDefault("MAX_CONCURRENT_WRITES", 5)
 
 	viper.SetDefault("NUMBER_OF_WORKERS", 10)
 	viper.SetDefault("BATCH_MAX_SIZE", 3)
 	viper.SetDefault("BATCH_FLUSH_TIMEOUT", "1s")
 
 	return Config{
-		LogLevel:        viper.GetString("LOG_LEVEL"),
-		GRPCServerPort:  viper.GetInt("GRPC_PORT"),
-		HealthCheckPort: viper.GetInt("HEALTH_CHECK_PORT"),
+		LogLevel:            viper.GetString("LOG_LEVEL"),
+		GRPCServerPort:      viper.GetInt("GRPC_PORT"),
+		HealthCheckPort:     viper.GetInt("HEALTH_CHECK_PORT"),
+		MaxConcurrentWrites: viper.GetInt("MAX_CONCURRENT_WRITES"),
 		ServiceCfg: service.Config{
 			NumberOfWorkers:   viper.GetInt("NUMBER_OF_WORKERS"),
 			BatchMaxSize:      viper.GetInt("BATCH_MAX_SIZE"),

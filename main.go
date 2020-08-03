@@ -13,6 +13,7 @@ import (
 	"github.com/portey/batch-saver/grpc"
 	"github.com/portey/batch-saver/healthcheck"
 	"github.com/portey/batch-saver/service"
+	storage2 "github.com/portey/batch-saver/storage"
 	"github.com/portey/batch-saver/storage/postgres"
 	log "github.com/sirupsen/logrus"
 )
@@ -30,13 +31,16 @@ func main() {
 	setupGracefulShutdown(cancel)
 	var wg = &sync.WaitGroup{}
 
-	storage, err := postgres.New(cfg.PostgresCfg)
+	store, err := postgres.New(cfg.PostgresCfg)
 	if err != nil {
 		log.WithError(err).Fatal("initializing db connection")
 	}
 
+	// initialize rate limiter wrapper over store
+	limitedStore := storage2.NewRateLimiter(cfg.MaxConcurrentWrites, store)
+
 	// initializing business logic
-	srv := service.New(ctx, cfg.ServiceCfg, storage)
+	srv := service.New(ctx, cfg.ServiceCfg, limitedStore)
 
 	// initializing grpc server
 	grpcSrv, err := grpc.New(cfg.GRPCServerPort, srv)
