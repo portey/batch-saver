@@ -32,7 +32,6 @@ func newResolver(service service) *resolver {
 }
 
 func (r *resolver) SaveEvent(stream api.BatchSaver_SaveEventServer) error {
-
 loop:
 	for {
 		select {

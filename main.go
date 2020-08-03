@@ -29,7 +29,7 @@ func main() {
 	var wg = &sync.WaitGroup{}
 
 	// initializing business logic
-	srv := service.New()
+	srv := service.New(ctx, cfg.ServiceCfg, nil) // todo real sinker here
 
 	// initializing grpc server
 	grpcSrv, err := grpc.New(cfg.GRPCServerPort, srv)
