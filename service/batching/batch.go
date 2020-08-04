@@ -14,6 +14,7 @@ type Sinker interface {
 }
 
 type BatchStore struct {
+	mx           sync.Mutex
 	ctx          context.Context
 	sinker       Sinker
 	batches      *sync.Map
@@ -50,6 +51,8 @@ func NewBatchStore(ctx context.Context, sinker Sinker, maxSize int, flushTimeout
 }
 
 func (s *BatchStore) GetByGroup(id string) *Batch {
+	s.mx.Lock()
+	defer s.mx.Unlock()
 	b, ok := s.batches.Load(id)
 	if ok {
 		return b.(*Batch)
@@ -98,6 +101,7 @@ func newBatch(ctx context.Context, sinker Sinker, maxSize int, flushTimeout time
 			case <-ctx.Done():
 				close(ch)
 				close(checkDie)
+				log.Trace("batching: context done", ctx.Err().Error())
 				flush()
 				return
 			case <-checkDie:
@@ -123,7 +127,10 @@ func newBatch(ctx context.Context, sinker Sinker, maxSize int, flushTimeout time
 				}
 
 				timerCh = time.After(flushTimeout)
-			case <-timerCh:
+			case _, ok := <-timerCh:
+				if !ok {
+					continue
+				}
 				log.Trace("batching: flushing batch by timeout")
 				flush()
 			}

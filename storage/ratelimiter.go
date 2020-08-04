@@ -28,7 +28,11 @@ func NewRateLimiter(size int, sinker sinker) *RateLimiter {
 }
 
 func (r *RateLimiter) Sink(ctx context.Context, events []models.Event) error {
-	<-r.ch
+	select {
+	case <-r.ch:
+	case <-ctx.Done():
+		return nil
+	}
 	err := r.sinker.Sink(ctx, events)
 	r.ch <- struct{}{}
 	return err

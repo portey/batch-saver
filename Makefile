@@ -19,12 +19,17 @@ dep:
 	go mod vendor
 
 .PHONY: test
-test: dep
+test: dep gen
 	go test -race -count=1 -short ./...
 
 .PHONY: lint
 lint: dep
 	golangci-lint run -c .golangci.yml
+
+.PHONY: gen
+gen:
+	mockgen -package=mock -source storage/ratelimiter.go -destination storage/mock/ratelimiter_mock.go
+	mockgen -package=mock -source service/batching/batch.go -destination service/batching/mock/batch.go
 
 .PHONY: dockerise
 dockerise:
